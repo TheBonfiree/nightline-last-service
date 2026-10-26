@@ -1,0 +1,117 @@
+/* ---------------------------------------------------------------------------
+ * loader.css — the boot panel.
+ *
+ * Same materials as everything else: the board ground, the ghost matrix grid,
+ * the rationed amber, the machine voice. Nothing rounded, nothing blurred.
+ * ------------------------------------------------------------------------- */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: var(--board);
+  /* Exit only. Entrance is instant: a gate that fades itself in has added a
+   * delay before the delay. */
+  transition: opacity 400ms cubic-bezier(.4, 0, 1, 1),
+              filter  400ms cubic-bezier(.4, 0, 1, 1);
+}
+
+/* Applied inline for the first frame and removed after one rAF. Without it
+ * the panel animates in from the browser's defaults — a flash of the end
+ * state, then a transition backwards into the start. */
+.boot.preanim,
+.boot.preanim * { transition: none !important; }
+
+/* The board does not cross-fade, it loses power — the same language as the
+ * layer switch, so the two exits belong to one machine. */
+.boot.is-leaving {
+  opacity: 0;
+  filter: brightness(.1);
+  pointer-events: none;
+}
+
+.boot__grid {
+  position: absolute;
+  inset: 0;
+  opacity: .5;
+  pointer-events: none;
+}
+
+.boot__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 24px;
+}
+
+/* The mark. Sized so a dot lands near the board's own pitch rather than
+ * blowing the sprite up into eleven saucers. */
+.boot__mark {
+  display: block;
+  width: clamp(132px, 22vw, 209px);   /* 11 dots at 12-19px */
+  aspect-ratio: 11 / 10;
+}
+
+.boot__line {
+  margin: 0;
+  font: 600 var(--t-label)/1 var(--f-signage);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.boot__pct {
+  margin: 0;
+  /* Centred, not baseline-aligned. Each digit column is an overflow box with
+   * absolutely positioned children, which leaves the column with no text
+   * baseline of its own — a baseline-aligned unit sign then drops below the
+   * digits it belongs to. */
+  display: flex;
+  align-items: center;
+  font: 400 var(--t-machine)/1 var(--f-terminal);
+  letter-spacing: 1px;
+  color: var(--amber);
+  text-shadow: 0 0 5px rgba(255, 167, 51, .4);
+}
+
+/* --- the odometer -------------------------------------------------------- */
+
+.roll { display: inline-flex; align-items: center; }
+
+/* Sits with the digits, and one size down so the number leads. */
+.boot__pct-unit { margin-inline-start: .12em; opacity: .7; }
+
+.roll-col {
+  position: relative;
+  display: inline-block;
+  width: 1ch;              /* no sideways jitter as digits change */
+  height: 1.05em;
+  overflow: hidden;
+  letter-spacing: 0;       /* tracking inside a 1ch box breaks the alignment */
+  font-variant-numeric: tabular-nums;
+}
+
+.roll-num {
+  position: absolute;
+  inset-inline: 0;
+  height: 1.05em;
+  text-align: center;
+}
+.roll-num:first-child { top: 0; }
+.roll-num:last-child  { top: 100%; }
+
+.roll-col.is-rolling .roll-num {
+  animation: roll-up 260ms cubic-bezier(.3, 0, 0, 1) both;
+}
+@keyframes roll-up { to { transform: translateY(-100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-col.is-rolling .roll-num { animation: none; }
+  .roll-num:last-child { top: 0; }
+  .roll-num:first-child { display: none; }
+}

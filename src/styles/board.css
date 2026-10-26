@@ -1,0 +1,413 @@
+/* ---------------------------------------------------------------------------
+ * board.css — the departure board itself.
+ * ------------------------------------------------------------------------- */
+
+.station {
+  min-height: 100vh;
+  background: var(--station);
+  padding: clamp(16px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* The canopy sign above the board. Signage face, not the matrix face —
+ * a painted sign and an LED display are different objects. */
+.canopy {
+  width: 100%;
+  max-width: 1120px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font: 600 var(--t-chrome)/1.2 var(--f-signage);
+  letter-spacing: var(--track-signage);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.canopy__mark { color: var(--led); }
+
+/* --- The board panel ----------------------------------------------------- */
+
+.board {
+  position: relative;
+  width: 100%;
+  max-width: 1120px;
+  background: var(--board);
+  border: 1px solid var(--rule);
+  /* Hard offset shadow, no blur. The panel sits proud of the canopy wall. */
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .55);
+  overflow: hidden;
+}
+
+/* Hazed acrylic over the whole panel, plus the ghost grid beneath the type.
+ * Both decorative, both aria-hidden in the markup. */
+.board__acrylic {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, var(--acrylic), transparent 40%, rgba(0, 0, 0, .25));
+  z-index: 2;
+}
+
+/* Only behind the chrome. The list area draws its own grid at the true dot
+ * pitch, and two grids at different pitches read as a moire, not a display. */
+.board__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .5;
+  z-index: 0;
+}
+
+.board__inner { position: relative; z-index: 1; }
+
+/* --- Header -------------------------------------------------------------- */
+
+.board__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  font: 600 var(--t-chrome)/1.2 var(--f-signage);
+  letter-spacing: var(--track-signage);
+  text-transform: uppercase;
+}
+
+/* The dead pixel column. One artifact defect, in the header, always in the
+ * same place — a board in service, not a board fresh from the factory. */
+.board__head::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 63%;
+  width: 2px;
+  height: 46px;
+  background: #000;
+  opacity: .9;
+  pointer-events: none;
+}
+
+/* It is an <h2>, and only `color` was set — so the UA sheet won and the
+ * board's most prominent chrome label rendered at 19.5px weight 700. Only
+ * Archivo 400 and 600 are loaded, which made that 700 a synthesised faux
+ * bold; the UA's 16px margin also inflated the header past its own padding
+ * and left the dead-pixel column no longer spanning it. */
+.board__title {
+  margin: 0;
+  font: inherit;
+  color: var(--led);
+}
+.board__sub   { color: var(--ink-3); font-weight: 400; }
+
+.clock {
+  font: 400 var(--t-machine)/1 var(--f-terminal);
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--amber);
+  text-shadow: 0 0 5px rgba(255, 167, 51, .40);
+}
+
+/* --- Column headings and rows -------------------------------------------- */
+
+/* Absolute widths, not `ch`. The two grids that share this template are set
+ * in different faces at different sizes — the headings in 11px signage, the
+ * rows in 31px matrix — so a `ch` column resolves to a different number of
+ * pixels in each and the headings drift off their own values. */
+.board__cols,
+.service__line {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 96px 150px;
+  gap: 18px;
+  align-items: center;
+  padding: 0 18px;
+}
+
+/* TIME and EXPECTED read right-aligned on a real board, so the numerals and
+ * the status words form two clean edges instead of a ragged one. */
+.board__cols > :nth-child(3),
+.board__cols > :nth-child(4),
+.service__time { text-align: right; }
+
+.board__cols {
+  height: 30px;
+  border-bottom: 1px solid var(--rule);
+  font: 600 var(--t-label)/1 var(--f-signage);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* When the LED panel is running, the headings answer to the CHARACTER grid,
+ * not to the DOM grid.
+ *
+ * Two independent grids were describing the same four columns: this one, and
+ * the field map in LedBoard.tsx (`F`, against COLUMNS = 276). They disagreed
+ * — TIME sat 130px right of the numerals it labelled, over the DESTINATION
+ * field. On a wide screen the DOM rows are transparent and the canvas is the
+ * only thing visible, so the canvas is authoritative and these tracks are
+ * derived from it:
+ *
+ *   PLAT      cols   4..16    DEST   cols  22..160
+ *   TIME      cols 168..198   STATUS cols 206..272
+ *
+ * Percentages are those column edges over 276. Change one, change both. */
+.board__inner:has(.board__list--led) .board__cols {
+  padding: 0;
+  gap: 0;
+  grid-template-columns: 5.797% 52.174% 13.768% 26.812% 1.449%;
+}
+.board__inner:has(.board__list--led) .board__cols > :first-child {
+  padding-inline-start: 1.449%;
+}
+
+/* The panel wrapper is the canvas's positioning context. A <canvas> is not a
+ * permitted child of <ul>, so the two are siblings inside this box and both
+ * share its top edge — which is what lets the measured line offsets be used
+ * directly as canvas coordinates. */
+.board__panel { position: relative; }
+
+.board__list { list-style: none; margin: 0; padding: 0; }
+
+/* The rendered LED panel. Decoration, aria-hidden, and inert to the pointer
+ * so every click and hover still lands on the real button underneath. */
+.board__led {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Applied by the renderer only after it has actually painted a frame. Until
+ * then — and permanently, if the canvas context could not be obtained — the
+ * rows stay ordinary readable type rather than an empty black panel.
+ *
+ * `color: transparent`, never `visibility: hidden`: the text has to stay in
+ * the accessibility tree and stay selectable. It is the same text, it is just
+ * being drawn by something else. */
+.board__list--led .service__line > span {
+  color: transparent;
+  text-shadow: none;
+}
+
+.service { border-bottom: 1px solid var(--rule); }
+.service:last-child { border-bottom: 0; }
+
+/* One tab stop for the whole list, roving tabindex within it — ten rows must
+ * never be ten tab stops. The row is a button, not a link: it expands
+ * something in place, it does not navigate. */
+.service__line {
+  width: 100%;
+  min-height: var(--row-h);
+  background: none;
+  border: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  font: 400 var(--t-matrix)/34.72px var(--f-matrix);
+  letter-spacing: var(--track-matrix);
+  /* Input feedback is a hard cut, not an interpolation. Everything else on
+   * this page eases; the row flips. That contrast is the personality. */
+  transition: background-color 120ms steps(1);
+}
+
+.service__line:hover,
+.service__line[aria-expanded="true"] { background: #0b1015; }
+
+.service__plat,
+.service__time { font-variant-numeric: tabular-nums; }
+
+.service__dest {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service__status {
+  font: 400 var(--t-matrix-sm)/1 var(--f-matrix);
+  letter-spacing: var(--track-matrix);
+  text-align: right;
+}
+
+/* Amber lives here and on the ticker. Nowhere else. */
+.status--on-time   { color: var(--led);   text-shadow: 0 0 4px rgba(232, 238, 242, .4); }
+.status--boarding  { color: var(--amber); text-shadow: 0 0 5px rgba(255, 167, 51, .45); }
+.status--delayed   { color: var(--amber); text-shadow: 0 0 5px rgba(255, 167, 51, .45); }
+/* --ink-off is 4.76:1 on --board and only 4.48:1 on the lighter --station,
+ * so it is pinned to the panel. A cancelled service never renders outside
+ * the board; if that ever changes, this needs a lighter value. */
+.status--cancelled { color: var(--ink-off); text-shadow: none; }
+
+/* --- Calling points (the row expansion) ----------------------------------
+ * Not a second view. A real board expands a selected service to show where
+ * it stops; this shows the credits, which is the same gesture.
+ *
+ * The open duration deliberately equals the panel's mechanical roll — seven
+ * dot-rows at 34ms. Selecting a service is ONE action, and before this the
+ * two halves of it disagreed: the status rolled over 238ms while the credits
+ * below appeared instantly and shoved every row down with them.
+ */
+.service__calling {
+  /* Height is driven by the Web Animations API in BoardRow, not by a CSS
+   * transition.
+   *
+   * The declarative `grid-template-rows: 0fr -> 1fr` technique was the first
+   * choice and does not interpolate here: an isolated test outside this
+   * component went 0 -> 100px in a single frame with a 400ms linear
+   * transition applied. `@starting-style` fared worse, pinning the row at its
+   * starting value. Animating a measured height is the one approach that
+   * demonstrably runs, and it is scoped to one small element for one
+   * transition rather than used casually. */
+  height: 0;
+  overflow: hidden;
+}
+
+.service__calling-inner {
+  overflow: hidden;
+  padding: 0 18px 16px 82px;   /* aligns with the DESTINATION column */
+  color: var(--ink-2);
+  font: 400 var(--t-prose)/var(--lh-prose) var(--f-prose);
+  letter-spacing: var(--track-prose);
+}
+
+.service__points {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font: 400 var(--t-machine-sm)/1.2 var(--f-terminal);
+  letter-spacing: .5px;
+  color: var(--led);
+}
+.service__points li::before { content: "> "; color: var(--ink-3); }
+
+.service__note { margin: 0; max-width: 62ch; }
+
+/* --- Ticker strip --------------------------------------------------------
+ * The base of the board. Coarse pitch, amber, and the only element on the
+ * page that carries filmed footage. */
+
+.ticker {
+  position: relative;
+  border-top: 1px solid var(--rule);
+  background: #000;
+  height: clamp(64px, 9vw, 108px);
+  overflow: hidden;
+}
+
+.ticker__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Idle test pattern (ambient device 5) --------------------------------- */
+
+.idle {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: var(--board);
+  font: 400 var(--t-matrix)/1.12 var(--f-matrix);
+  letter-spacing: var(--track-matrix);
+  color: var(--amber);
+  text-shadow: 0 0 5px rgba(255, 167, 51, .4);
+  text-align: center;
+  padding: 24px;
+}
+
+/* --- The escape-hatch control -------------------------------------------
+ * Offered inside the fiction as a station notice, not as a grey
+ * "accessible version" button. Signage face, because a printed notice is
+ * not part of the display. */
+
+.notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: none;
+  border: 1px solid #57646e;   /* 3.32:1 on --board — WCAG 1.4.11 wants 3:1 for a control edge */
+  color: var(--ink-2);
+  font: 600 var(--t-label)/1 var(--f-signage);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms steps(1), border-color 120ms steps(1);
+}
+.notice:hover { color: var(--led); border-color: var(--ink-3); }
+/* The two header controls travel together when the header wraps. */
+.board__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* The chime's state word. Amber is the panel's rationed hue and this is not
+ * the panel, so the "on" state is carried by the lit white instead. */
+.notice__on { color: var(--led); }
+
+.notice kbd {
+  /* A keycap holds one character, and the label's tracking was pushing that
+   * character off centre with a trailing letter-space. */
+  font: 400 var(--t-machine-sm)/1 var(--f-terminal);
+  letter-spacing: normal;
+  border: 1px solid #57646e;
+  padding: 1px 5px;
+}
+
+/* --- Narrow displays -----------------------------------------------------
+ * A real board sheds columns before it shrinks its type, so TIME and
+ * EXPECTED move under the destination rather than compressing into it. */
+
+@media (max-width: 768px) {
+  .board__cols { display: none; }
+
+  /* Three real areas on the second row. Putting TIME and EXPECTED in one
+   * area and separating them with justify-self does not work: they occupy
+   * the same grid cell and overlap. */
+  .service__line {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "plat dest dest"
+      "plat time status";
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 10px 14px;
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .service__plat   { grid-area: plat; align-self: start; }
+  .service__dest   { grid-area: dest; white-space: normal; }
+
+  /* The matrix face, not the terminal one. This was the only cell on the
+   * board that changed family responsively — the same data field rendered as
+   * the display face on a wide screen and as machine output on a narrow one.
+   * Baseline alignment because the row otherwise centres two different
+   * optical sizes against each other and the numerals sit visibly low. */
+  .service__time   {
+    grid-area: time;
+    text-align: left;
+    font: 400 17px/1 var(--f-matrix);
+    letter-spacing: var(--track-matrix);
+    color: var(--ink-2);
+  }
+  .service__status { grid-area: status; font-size: 15px; }
+  .service__line   { align-items: baseline; }
+  .service__calling-inner { padding-left: 14px; }
+  .idle { font-size: 20px; }
+}

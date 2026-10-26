@@ -1,0 +1,201 @@
+/* ---------------------------------------------------------------------------
+ * plain.css — the escape hatch's second art direction.
+ *
+ * This is not a stripped consolation prize. It is the release page a
+ * different client would have commissioned: its own palette, its own scale,
+ * its own type. The rule that nothing on the board exceeds 31px belongs to
+ * the artifact, and this layer is not the artifact — so it gets a real
+ * display size and a real heading ladder.
+ *
+ * Everything on the board is here too, plus the two things the fiction has
+ * no honest place for: the streaming links and the biography.
+ * ------------------------------------------------------------------------- */
+
+.plain {
+  --p-bg:   #0b0b0c;
+  --p-fg:   #f1efe9;
+  --p-mute: #8d8a83;
+  /* Two separator values, because they do different jobs and only one of
+   * them has a contrast floor.
+   *   --p-line  hairlines BETWEEN blocks of text. Decorative; no minimum.
+   *   --p-edge  the visible boundary OF a control. WCAG 1.4.11 wants 3:1,
+   *             and this is measured against both the page ground and the
+   *             card fill, since it sits between them.
+   * The first pass used --p-line for both: the back button's edge came out
+   * at 1.25:1 and the link cards at 1.04:1 against the page, which made four
+   * separate controls read as one undifferentiated block. */
+  --p-line: #23231f;
+  --p-edge: #666660;   /* 3.40:1 on --p-bg, 3.27:1 on --p-card */
+  --p-card: #111;
+
+  /* The plain layer keeps its own scale, because it is a different art
+   * direction: printed paper rather than a lit panel. Same discipline
+   * though — named roles, in rem, so user font settings reach it. */
+  --pt-display: clamp(44px, 9vw, 92px);
+  --pt-lede:    1.1875rem;   /* standfirst */
+  --pt-title:   1.25rem;     /* track name */
+  --pt-body:    1rem;
+  --pt-meta:    0.9375rem;   /* the note under a track */
+  --pt-micro:   0.8125rem;   /* credits */
+  --pt-label:   0.75rem;     /* uppercase section label */
+
+  min-height: 100vh;
+  background: var(--p-bg);
+  color: var(--p-fg);
+  font: 400 var(--pt-body)/1.6 var(--f-prose);
+}
+
+.plain__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px clamp(16px, 5vw, 64px);
+  background: var(--p-bg);
+  border-bottom: 1px solid var(--p-line);
+}
+
+.plain__wordmark {
+  margin: 0;
+  font: 600 var(--pt-meta)/1 var(--f-signage);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* Back to the artifact. A one-way exit would tell the visitor the concept
+ * was a hazard rather than a choice, so this is styled as a real control and
+ * sits in the header where the switch that got them here was. */
+.plain__back {
+  padding: 9px 14px;
+  background: none;
+  border: 1px solid var(--p-edge);
+  color: var(--p-mute);
+  font: 600 var(--pt-label)/1 var(--f-signage);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.plain__back:hover { color: var(--p-fg); border-color: var(--p-fg); }
+
+.plain__body {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(40px, 9vw, 104px) clamp(16px, 5vw, 64px) 120px;
+}
+
+.plain__display {
+  margin: 0 0 8px;
+  /* Weight 400 uppercase at display size wants air, not tightening: the
+   * negative tracking here was borrowed from the hero, which is weight 600.
+   * Match the tracking to the weight, not to the size. */
+  font: 400 var(--pt-display)/1.02 var(--f-signage);
+  letter-spacing: .005em;
+  text-transform: uppercase;
+}
+
+.plain__standfirst {
+  margin: 0 0 56px;
+  max-width: 56ch;
+  color: var(--p-mute);
+  font-size: var(--pt-lede);
+}
+
+.plain__h2 {
+  margin: 64px 0 20px;
+  font: 600 var(--pt-label)/1 var(--f-signage);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--p-mute);
+}
+
+/* Tracklist as a plain list. Same content as the board, no timetable
+ * conceit — a visitor who declined the game does not get it smuggled back. */
+.plain__tracks { list-style: none; margin: 0; padding: 0; }
+
+.plain__track {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: baseline;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--p-line);
+}
+
+.plain__num  { color: var(--p-mute); font-variant-numeric: tabular-nums; }
+.plain__name { margin: 0 0 6px; font-size: var(--pt-title); font-weight: 600; }
+
+/* The note is prose about the track; the credits are metadata. They were
+ * 15px and 14px in the same family, weight and colour, which read as one
+ * undifferentiated grey block under every title. The note now carries the
+ * foreground and the credits drop a full step and stay muted, so the two
+ * roles separate on colour and size together rather than on one pixel. */
+.plain__note { margin: 0; color: var(--p-fg); font-size: var(--pt-meta); }
+.plain__dur  { color: var(--p-mute); font-variant-numeric: tabular-nums; }
+
+.plain__credits {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  font-size: var(--pt-micro);
+  color: var(--p-mute);
+}
+
+.plain__state {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--p-line);
+  font: 600 0.625rem/1.5 var(--f-signage);
+  letter-spacing: .12em;
+  color: var(--p-mute);
+  vertical-align: 2px;
+}
+
+/* Cards at radius 0 — the one detail the two art directions share, because
+ * it is the honest one: neither of them rounds anything. */
+.plain__links {
+  display: grid;
+  /* Explicit counts, not auto-fit. The divider is the container's background
+   * showing through a 1px gap, so an empty grid cell is not empty — it is a
+   * solid slab of divider colour. auto-fit put four cards into three columns
+   * and left exactly that. Four links divide evenly into 4, 2 and 1. */
+  grid-template-columns: repeat(4, 1fr);
+  /* The 1px gap IS the divider: the container's own background shows through
+   * between the cards. It therefore has to clear 3:1, or the four links have
+   * no visible boundary at all — the card fill is only 1.04:1 against the
+   * page and cannot do that job on its own. */
+  gap: 1px;
+  background: var(--p-edge);
+  border: 1px solid var(--p-edge);
+}
+
+.plain__link {
+  display: block;
+  padding: 22px 20px;
+  background: var(--p-card);
+  color: var(--p-fg);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background .2s;
+}
+.plain__link:hover { background: #191919; }
+
+@media (max-width: 900px) { .plain__links { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .plain__links { grid-template-columns: 1fr; } }
+.plain__link span { display: block; margin-top: 4px; font-weight: 400; font-size: var(--pt-micro); color: var(--p-mute); }
+
+.plain__prose p { max-width: 62ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plain *,
+  .plain *::before,
+  .plain *::after { transition-duration: .01ms !important; }
+}

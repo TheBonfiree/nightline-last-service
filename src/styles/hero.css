@@ -1,0 +1,79 @@
+/* ---------------------------------------------------------------------------
+ * hero.css — the first viewport: the station's overhead sign.
+ *
+ * The section is tall so there is scroll distance to scrub through; the inner
+ * panel sticks so the strip stays in view while the frames advance under it.
+ * Under reduced motion the section collapses to one viewport height and the
+ * strip holds a single still.
+ * ------------------------------------------------------------------------- */
+
+.hero {
+  height: 260vh;   /* 1.6 viewports of scrub travel */
+  background: var(--station);
+}
+
+.hero__stick {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: clamp(16px, 4vw, 56px);
+  /* Same measure as the board below it, so the overhead sign and the
+   * departure board share one edge rather than nearly sharing one. */
+  max-width: calc(1120px + 2 * clamp(16px, 4vw, 56px));
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* The one h1, and it stands alone. There was a kicker above it naming the
+ * artist; a label above a heading is never earned, and the canopy strip
+ * already says NIGHTLINE two lines up. The name moved into the prose. */
+.hero__h1 {
+  margin: 0;
+  font: 600 var(--t-display)/0.98 var(--f-signage);
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+  color: var(--led);
+}
+
+.hero__note {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  letter-spacing: var(--track-prose);
+}
+
+/* The filmed strip. Full width of its clipping parent, never 100vw —
+ * 100vw includes the scrollbar and would push the body sideways.
+ *
+ * The aspect ratio matches the source crop exactly (1120x298). The canvas
+ * draws cover-scaled, so any other ratio silently eats the top and bottom
+ * rows of the matrix — and a dot-matrix glyph with its top row missing does
+ * not read as a tight crop, it reads as a broken sign. Height is capped so
+ * the strip cannot swallow the viewport on a wide monitor. */
+.ticker--hero {
+  /* flex-shrink must be off and the cap must be a WIDTH, not a height:
+   * inside a flex column, both a shrinking item and a max-height override
+   * aspect-ratio, and the canvas then cover-crops the top and bottom rows of
+   * the matrix. Capping the width lets the ratio survive both. */
+  flex: 0 0 auto;
+  /* .ticker sets an explicit height for the board's compact strip. An
+   * explicit height beats aspect-ratio, so it has to be released here. */
+  height: auto;
+  width: 100%;
+  max-width: min(100%, calc(46vh * 1120 / 298));
+  aspect-ratio: 1120 / 298;
+  border: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .55);
+}
+
+/* Reduced motion: no travel to scrub through, so the section stops being
+ * tall. Applied as a class from JavaScript, because the scrub itself lives
+ * in a scroll handler that a CSS media query would never reach. */
+.hero--static { height: auto; }
+.hero--static .hero__stick { position: static; }

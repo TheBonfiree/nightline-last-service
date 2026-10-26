@@ -1,0 +1,211 @@
+/* ---------------------------------------------------------------------------
+ * tokens.css — the artifact's material, expressed once.
+ *
+ * The artifact: a 2003-era UK mainline dot-matrix departure board. Cold white
+ * LEDs on black behind slightly hazed acrylic, mounted under a canopy. In
+ * service, dusty, one dead pixel column in the header.
+ *
+ * The material is phosphor behind acrylic, and that binds every surface:
+ *
+ *   - Nothing is rounded. `border-radius` does not appear in this project.
+ *   - No blur. LED bloom is a tight `text-shadow`; `filter: blur()` is a
+ *     video-era effect and the eye reads it as wrong before the mind does.
+ *   - Unlit pixels stay faintly visible. The ghost grid is what makes this
+ *     read as a display rather than as text on a black rectangle.
+ *   - Everything snaps to the dot pitch. No fractional offsets.
+ * ------------------------------------------------------------------------- */
+
+/* Latin subsets only. The default @fontsource entry point declares every
+ * subset a family ships — Cyrillic, Greek, Vietnamese, and for DotGothic16
+ * the full Japanese set across dozens of unicode-range blocks. None of it is
+ * ever requested by this page's copy, but all of it lands in the stylesheet:
+ * pulling the latin files instead cut the built CSS from 171KB to a fraction
+ * of it. */
+@import '@fontsource/archivo/latin-400.css';
+@import '@fontsource/archivo/latin-600.css';
+@import '@fontsource/dotgothic16/latin-400.css';
+@import '@fontsource/vt323/latin-400.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-600.css';
+
+:root {
+  /* Palette ---------------------------------------------------------------
+   * Six values. Amber is THE rationed hue: it appears on the status column
+   * and the ticker and nowhere else. It never fills a button and never sets
+   * a title. One amber CTA collapses this into a themed template. */
+  --board:    #05070a;   /* board ground behind acrylic */
+  --led:      #e8eef2;   /* lit pixel, cold white */
+  --led-dim:  #1a2026;   /* unlit pixel — the ghost grid; must stay visible */
+  --amber:    #ffa733;   /* the one hue */
+  --acrylic:  rgba(255, 255, 255, .03);
+
+  /* Three greys for text, all measured against --board and --station rather
+   * than picked by eye. A dark panel makes dim type look intentional right
+   * up to the point where it cannot be read: the first pass here had the
+   * CANCELLED status at 2.51:1 and the column headings at 3.26:1, both of
+   * which looked correct and both of which failed AA. Every value below
+   * clears 4.5:1 on both grounds.
+   *   --ink-2   secondary prose
+   *   --ink-3   labels, column headings, canopy
+   *   --ink-off the unlit status; the dimmest value that still passes */
+  --ink-2:   #93a2ac;
+  --ink-3:   #7d8b95;
+  --ink-off: #6f7d87;
+  --rule:     #12181d;
+  --station:  #0d1114;   /* canopy ground around the board */
+
+  /* Four roles, four jobs — different roles from every other register,
+   * because an interface is not a document.
+   *   1. signage  — the station's own signwriting. Chrome, labels, notices.
+   *   2. matrix   — the board's display face. Rows only, never chrome.
+   *   3. terminal — anything pretending to be machine output.
+   *   4. prose    — the one place legibility beats the costume.
+   *
+   * Role 2 has TWO implementations, which is worth stating plainly because
+   * the file used to imply one. On a panel wide enough to run it, the board
+   * is drawn dot by dot from the 5x7 bitmap in canvas/dotMatrix.ts — that
+   * bitmap is the real display face, and no stylesheet or type scanner can
+   * see it. DotGothic16 is the same role rendered as type: it carries the
+   * board on narrow screens, and it is what remains if the canvas ever fails
+   * to paint. Keeping it costs 10.5KB on desktop loads that will not show
+   * it; that is deliberate insurance, not an oversight, because the
+   * alternative to a fallback face here is unstyled text. */
+  --f-signage:  'Archivo', system-ui, sans-serif;
+  --f-matrix:   'DotGothic16', 'Courier New', monospace;
+  --f-terminal: 'VT323', 'Courier New', monospace;
+  --f-prose:    'Inter', system-ui, sans-serif;
+
+  /* Type scale, named for the job rather than the value ---------------------
+   * Every one of these was previously a literal at its call site: roughly ten
+   * distinct sizes on the artifact layer and nine on the plain layer, with
+   * the same role re-declared at a different value in six places. A comment
+   * claiming a role scale is not a role scale.
+   *
+   * The board sizes are the artifact's, not the brand's — nothing on the
+   * BOARD exceeds 31px. The hero and the plain layer are painted signage and
+   * printed paper respectively, and both are allowed their own scale. */
+  --t-display:   clamp(40px, 10vw, 96px);  /* the canopy sign; hero only   */
+  --t-matrix:    31px;                     /* board row                    */
+  --t-matrix-sm: 20px;                     /* board status cell            */
+  --t-machine:   22px;                     /* the clock                    */
+  --t-machine-sm:18px;                     /* calling points, keycaps      */
+  --t-chrome:    13px;                     /* signage: header, canopy      */
+  --t-label:     11px;                     /* uppercase micro label        */
+
+  /* Prose is the one role in rem. A reader who has raised their browser's
+   * default font size gets nothing from a px body, and this is the role the
+   * register itself says exists because legibility beats the costume.
+   * 0.8125rem is the brief's 13px at a default 16px root. */
+  --t-prose:     0.8125rem;
+  --lh-prose:    1.55;
+
+  /* Dot pitch. The board is a fine matrix; the ticker is a coarse one. Real
+   * stations run exactly this pair — a high-resolution main board above a
+   * low-resolution service ticker — so the two grids are period-correct
+   * rather than an inconsistency. */
+  --pitch: 4px;
+  --pitch-ticker: 14px;
+
+  --row-h: 52px;
+
+  /* Tracking goes POSITIVE here, against the negative-above-16px rule the
+   * other registers share. Period faces were drawn for low resolution and
+   * open up rather than tighten.
+   *
+   * --track-prose is the light-on-dark compensation. Pale text on a near
+   * black ground blooms optically and closes its own counters up; it wants a
+   * little more line height and a little more tracking than the same face
+   * would on white. The prose here had `letter-spacing: normal`. */
+  --track-matrix:  0.4px;
+  --track-signage: 0.08em;   /* sentence-case chrome */
+  --track-label:   0.14em;   /* uppercase micro labels */
+  --track-prose:   0.01em;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--station); }
+
+body {
+  margin: 0;
+  background: var(--station);
+  color: var(--led);
+  font: 400 var(--t-prose)/var(--lh-prose) var(--f-prose);
+  letter-spacing: var(--track-prose);
+  -webkit-font-smoothing: antialiased;
+
+  /* The page body never scrolls horizontally. Full-bleed devices are the
+   * usual culprit — `100vw` includes the scrollbar width. Nothing here uses
+   * it; everything full-bleed is 100% of a clipping parent. */
+  overflow-x: hidden;
+}
+
+/* Nothing in this project is rounded. Stated once, as a rule, so a component
+ * added later has to override it deliberately rather than by accident. */
+:where(*) { border-radius: 0; }
+
+/* The ghost grid. One repeating radial gradient, drawn at the dot pitch,
+ * over anything that is meant to be a display surface. Decoration — always
+ * aria-hidden where it is a separate element. */
+.matrix-grid {
+  background-image: radial-gradient(
+    circle at center,
+    var(--led-dim) 0 1px,
+    transparent 1.2px
+  );
+  background-size: var(--pitch) var(--pitch);
+}
+
+/* LED bloom. A tight text-shadow, never a filter: a real LED spills a pixel
+ * or two into the acrylic and stops. */
+.lit      { color: var(--led);   text-shadow: 0 0 4px rgba(232, 238, 242, .45); }
+.lit-amber{ color: var(--amber); text-shadow: 0 0 5px rgba(255, 167, 51, .40); }
+
+/* Focus is visible on a black display without introducing a colour: an inset
+ * ring in the lit white the board already uses. */
+:focus-visible {
+  outline: 2px solid var(--led);
+  outline-offset: -2px;
+}
+
+/* --- Layer transition ----------------------------------------------------
+ * The board and the plain timetable are two states of one document, and the
+ * switch between them is the only navigation on the page.
+ *
+ * It is not a cross-fade. The board is an LED panel: it loses power. The old
+ * view darkens and goes out quickly, and the printed timetable is simply what
+ * was behind it — which is also why the incoming animation is a plain fade
+ * with no movement. Paper does not slide in.
+ *
+ * `filter` on a full-screen layer is expensive and is used exactly once, on a
+ * transition, when nothing else is competing for the frame. */
+@keyframes power-off {
+  to { opacity: 0; filter: brightness(.12) saturate(.4); }
+}
+@keyframes paper-in {
+  from { opacity: 0; }
+}
+
+::view-transition-old(root) {
+  animation: power-off 150ms cubic-bezier(.4, 0, 1, 1) both;
+}
+::view-transition-new(root) {
+  animation: paper-in 300ms cubic-bezier(.16, 1, .3, 1) 70ms both;
+}
+
+/* App.tsx already skips the transition entirely under reduced motion. This is
+ * the second line of defence, for a transition started by anything else. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 1ms; animation-delay: 0s; }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
