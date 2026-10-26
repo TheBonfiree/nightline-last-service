@@ -75,3 +75,11 @@ frame that has not arrived coarsens the scrub rather than blanking it.
   `index.html` and React replaces it on mount.
 - Nothing is rounded, nothing is blurred, and amber appears only on the
   status column and the ticker.
+
+## Screenshots
+
+![Desktop — hero](screenshots/desktop.png)
+
+![Desktop — scrolled](screenshots/desktop-2.png)
+
+<img src="screenshots/mobile.png" alt="Mobile" width="320">
